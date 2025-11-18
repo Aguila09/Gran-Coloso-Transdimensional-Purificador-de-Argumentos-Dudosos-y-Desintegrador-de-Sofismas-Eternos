@@ -1,0 +1,68 @@
+# CODIGO EN MERMID DE LA ONTOLOGIA REPRESENTADO EN UN GRAFO DE CONOCIMIENTO
+
+graph TD
+  %% Nodos principales
+  Texto -->|contiene| Argumento
+  Texto -->|presenta| SesgoCognitivo
+  Texto -->|proviene de| Fuente
+  Texto -->|clasificado como| TipoDeTexto
+  Texto -->|analizado por| IADetectora
+
+  Argumento -->|formado por| Premisa
+  Argumento -->|formado por| Conclusión
+  Argumento -->|puede contener| Falacia
+  Argumento -->|puede tener| Contraargumento
+  Argumento -->|referencia a| Contexto
+
+  Premisa -->|sustentada en| Evidencia
+  Premisa -->|expresada con| LenguajeRetorico
+
+  Falacia -->|ocurre en| Contexto
+  Falacia -->|es tipo de| FalaciaFormal
+  Falacia -->|es tipo de| FalaciaInformal
+
+  FalaciaFormal -->|incluye| FalsaCausa
+  FalaciaFormal -->|incluye| GeneralizacionAcelerada
+  FalaciaInformal -->|incluye| AdHominem
+  FalaciaInformal -->|incluye| ApelacionALaEmocion
+  FalaciaInformal -->|incluye| PendienteResbaladiza
+  FalaciaInformal -->|incluye| ApelacionALaAutoridad
+
+  SesgoCognitivo -->|es tipo de| SesgoPerceptivo
+  SesgoCognitivo -->|es tipo de| SesgoMotivacional
+  SesgoCognitivo -->|es tipo de| SesgoDeMemoria
+
+  SesgoPerceptivo -->|incluye| SesgoDeConfirmacion
+  SesgoPerceptivo -->|incluye| SesgoDeDisponibilidad
+  SesgoMotivacional -->|incluye| SesgoDeAutocomplacencia
+  SesgoDeMemoria -->|incluye| SesgoDeAnclaje
+
+  Contexto -->|pertenece a| Cultura
+  Contexto -->|tiene| Ideologia
+  Ideologia -->|se manifiesta en| Discurso
+  Discurso -->|se compone de| Texto
+
+  IADetectora -->|detecta| Falacia
+  IADetectora -->|detecta| SesgoCognitivo
+  IADetectora -->|extrae| EstructuraArgumentativa
+  IADetectora -->|usa| ModeloDeLenguaje
+  IADetectora -->|produce| Resultado
+  IADetectora -->|evaluado por| MetodoEvaluacion
+  IADetectora -->|usado por| Usuario
+
+  Resultado -->|describe| Texto
+  Resultado -->|contiene| InformeDeSesgos
+  Resultado -->|contiene| InformeDeFalacias
+  Resultado -->|incluye| EvaluacionDeConfianza
+
+  MetodoEvaluacion -->|usa metricas| Metrica
+  Metrica -->|incluye| Precision
+  Metrica -->|incluye| Recall
+  Metrica -->|incluye| F1Score
+  Metrica -->|incluye| Fairness
+
+  Fuente -->|pertenece a| Medio
+  Fuente -->|tiene| Credibilidad
+  Usuario -->|interpreta| Resultado
+  Usuario -->|reporta| Retroalimentacion
+  Retroalimentacion -->|usada para| MejoraDelModelo

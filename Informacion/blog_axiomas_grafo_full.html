@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Axiomas desde un Grafo de Conocimiento — Blog</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<!-- Base styles (clean blog with light/dark toggle) -->
+<style>
+:root{
+  --bg:#ffffff; --fg:#0f172a; --muted:#475569;
+  --card:#f8fafc; --code:#0b1020; --accent:#2563eb;
+  --border:#e2e8f0; --shadow:0 10px 30px rgba(2,6,23,.08);
+}
+[data-theme="dark"]{
+  --bg:#0b1020; --fg:#e5e7eb; --muted:#9ca3af;
+  --card:#0f172a; --code:#0b1020; --accent:#60a5fa;
+  --border:#1f2937; --shadow:0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial;
+  background:var(--bg); color:var(--fg); line-height:1.7;
+}
+header{
+  position:sticky; top:0; z-index:50;
+  background:linear-gradient(to bottom, rgba(0,0,0,.04), transparent);
+  backdrop-filter:saturate(140%) blur(6px);
+  border-bottom:1px solid var(--border);
+}
+.container{max-width:980px;margin:0 auto;padding:1rem 1.25rem}
+.title{font-weight:800; font-size:1.7rem; margin:.3rem 0 .2rem}
+.subtitle{color:var(--muted); margin:0 0 .2rem}
+.toggle{
+  float:right; margin-top:.2rem;
+  border:1px solid var(--border); background:var(--card); color:var(--fg);
+  padding:.4rem .7rem; border-radius:999px; cursor:pointer; font-weight:600;
+  box-shadow:var(--shadow);
+}
+main{max-width:980px;margin:0 auto;padding:2rem 1.25rem}
+.card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:1.2rem 1.2rem; box-shadow:var(--shadow);
+}
+h1,h2,h3{line-height:1.25}
+h1{font-size:2rem;margin:0 0 .3rem}
+h2{font-size:1.45rem;margin:1.8rem 0 .7rem}
+h3{font-size:1.15rem;margin:1.4rem 0 .5rem}
+p{margin:.7rem 0}
+ul,ol{margin:.4rem 0 .8rem 1.25rem}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+pre{
+  background:var(--bg); border:1px dashed var(--border); padding:1rem; border-radius:12px; overflow:auto
+}
+.copy{
+  display:inline-block; margin:.25rem 0 .7rem; padding:.3rem .55rem;
+  border:1px solid var(--border); border-radius:8px; background:var(--bg); cursor:pointer; font-size:.85rem
+}
+blockquote{
+  border-left:4px solid var(--accent);
+  margin:1rem 0; padding:.4rem .9rem; color:var(--muted); background:rgba(37,99,235,.06);
+  border-radius:8px;
+}
+hr{border:none;border-top:1px solid var(--border); margin:2rem 0}
+kbd{
+  background:var(--bg); border:1px solid var(--border); border-bottom-width:2px;
+  padding:.1rem .35rem; border-radius:6px; font-size:.85rem;
+}
+.small{color:var(--muted); font-size:.95rem}
+.mermaid{margin:.6rem 0 1rem; border:1px solid var(--border); border-radius:12px; background:#fff}
+[data-theme="dark"] .mermaid{background:#0b1020}
+.callout{background:rgba(96,165,250,.12); border:1px solid var(--border); padding:.8rem 1rem; border-radius:12px}
+</style>
+
+<!-- Highlight.js for code display -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<!-- Mermaid -->
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const themeAttr = document.documentElement.getAttribute('data-theme') || (prefersDark ? 'dark' : 'light');
+  mermaid.initialize({ startOnLoad:true, theme: themeAttr === 'dark' ? 'dark' : 'default' });
+  window._reinitMermaid = (theme) => {
+    mermaid.initialize({ startOnLoad:false, theme: theme === 'dark' ? 'dark' : 'default' });
+    const blocks = document.querySelectorAll('.mermaid');
+    blocks.forEach(b => { b.removeAttribute('data-processed'); });
+    mermaid.init(undefined, '.mermaid');
+  };
+</script>
+</head>
+<body>
+<header>
+  <div class="container">
+    <button class="toggle" onclick="toggleTheme()">🌙 / ☀️</button>
+    <div class="title">Formas sencillas de inferir axiomas desde un grafo de conocimiento</div>
+    <div class="subtitle">Mini-ejemplos y listado aplicado al grafo de recetas de café. Todo en lenguaje natural, sin notación formal.</div>
+  </div>
+</header>
+
+<main>
+  <article class="card">
+    <h2>1) “Lee” el grafo con estos 6 patrones visuales → axiomas</h2>
+
+    <ol>
+      <li><strong>Jerarquía (flecha “es un tipo de”)</strong>
+        <ul>
+          <li><em>Patrón:</em> un nodo padre con varios hijos.</li>
+          <li><em>Axioma:</em> <strong>Todo hijo es un caso de su padre</strong>.</li>
+          <li><em>Extra frecuente:</em> <strong>Los hijos se excluyen entre sí</strong> (si representan categorías mutuamente excluyentes).</li>
+        </ul>
+      </li>
+
+      <li><strong>Relación con verbo “tiene / requiere / se prepara a / produce”</strong>
+        <ul>
+          <li><em>Patrón:</em> flecha con verbo desde A hacia B.</li>
+          <li><em>Axiomas:</em>
+            <ul>
+              <li><strong>El dominio</strong> de la relación son los <strong>A</strong>; <strong>el rango</strong> son los <strong>B</strong>.</li>
+              <li><strong>Todo A participa al menos una vez</strong> en esa relación (existencia).</li>
+              <li>Si el dominio sugiere unicidad (“se prepara a <strong>una</strong> temperatura”), añadir <strong>exactamente una</strong> (cardinalidad).</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+      <li><strong>Unidades o mediciones</strong>
+        <ul>
+          <li><em>Patrón:</em> “se mide en → Micras” o “Temperatura (°C)”.</li>
+          <li><em>Axiomas:</em>
+            <ul>
+              <li>Esa propiedad es <strong>numérica</strong> y usa la <strong>unidad X</strong>.</li>
+              <li>Tiene un <strong>rango válido</strong> (mínimo / máximo).</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+      <li><strong>Múltiples salidas con el mismo verbo</strong>
+        <ul>
+          <li><em>Patrón:</em> A —produce→ B y A —produce→ C.</li>
+          <li><em>Axioma:</em> <strong>Todo A produce al menos un B y al menos un C</strong> (no es “o”, es “y” si ambas flechas salen del mismo A).</li>
+        </ul>
+      </li>
+
+      <li><strong>Inversas evidentes</strong>
+        <ul>
+          <li><em>Patrón:</em> A —necesita→ B sugiere B —es necesario por→ A.</li>
+          <li><em>Axioma:</em> <strong>Si A necesita B, entonces B es necesario por A</strong> (opcional si el modelo lo exige).</li>
+        </ul>
+      </li>
+
+      <li><strong>Pistas de unicidad</strong>
+        <ul>
+          <li><em>Patrón:</em> expresiones como “tiene un tueste”, “se prepara a una temperatura”.</li>
+          <li><em>Axioma:</em> <strong>Cada instancia tiene exactamente un valor</strong> en esa relación.</li>
+        </ul>
+      </li>
+    </ol>
+
+    <h2>2) Mini-ejemplos rápidos (tres subgrafitos)</h2>
+
+    <h3>Ejemplo A: jerarquía</h3>
+    <p><strong>Grafo:</strong> Bebida → Café, Té.</p>
+    <ul>
+      <li>Todo café es una bebida.</li>
+      <li>Todo té es una bebida.</li>
+      <li>Café y té no son la misma cosa (se <em>excluyen</em>).</li>
+    </ul>
+
+    <h3>Ejemplo B: relación simple</h3>
+    <p><strong>Grafo:</strong> Receta —se prepara a→ Temperatura.</p>
+    <ul>
+      <li>Toda receta se prepara a alguna temperatura.</li>
+      <li>La temperatura se expresa en grados Celsius.</li>
+      <li>Cada receta se prepara a <strong>una</strong> temperatura nominal (unicidad).</li>
+    </ul>
+
+    <h3>Ejemplo C: medición con rango</h3>
+    <p><strong>Grafo:</strong> Molienda Fina —se mide en→ Micras Finas; Micras Finas → mínimo 80, máximo 100.</p>
+    <ul>
+      <li>La molienda fina se mide en micras.</li>
+      <li>El valor válido para micras finas está entre 80 y 100.</li>
+      <li>Una medición de micras finas siempre debe respetar ese rango.</li>
+    </ul>
+
+    <h2>3) Axiomas (en lenguaje natural) aplicados a tu grafo de <em>recetas de café</em></h2>
+
+    <h3>Jerarquías y exclusiones</h3>
+    <ol>
+      <li>Todo <strong>tueste</strong> es de tipo <strong>claro</strong>, <strong>medio</strong> u <strong>oscuro</strong>.</li>
+      <li><strong>Claro</strong>, <strong>medio</strong> y <strong>oscuro</strong> son categorías distintas; un café no puede tener más de una a la vez.</li>
+      <li>Toda <strong>molienda</strong> es de tipo <strong>fina</strong>, <strong>media</strong> o <strong>gruesa</strong>.</li>
+      <li><strong>Fina</strong>, <strong>media</strong> y <strong>gruesa</strong> son categorías distintas; una molienda no puede ser más de una a la vez.</li>
+    </ol>
+
+    <h3>Relaciones y existencia</h3>
+    <ol start="5">
+      <li>Todo <strong>café</strong> tiene un <strong>tueste</strong>.</li>
+      <li>Toda <strong>receta</strong> requiere una <strong>molienda</strong>.</li>
+      <li>Toda <strong>receta</strong> se prepara a una <strong>temperatura</strong>.</li>
+      <li>Toda <strong>receta</strong> produce un valor de <strong>TDS</strong> (intensidad percibida).</li>
+      <li>Toda <strong>receta</strong> produce un valor de <strong>extracción</strong> (relacionado con amargor/sabor).</li>
+      <li>Toda <strong>receta</strong> necesita un <strong>café</strong> para poder realizarse.</li>
+    </ol>
+
+    <h3>Cardinalidades (cuando el dominio sugiere unicidad)</h3>
+    <ol start="11">
+      <li>Cada <strong>café</strong> tiene <strong>exactamente un</strong> tueste.</li>
+      <li>Cada <strong>receta</strong> se prepara a <strong>exactamente una</strong> temperatura (temperatura objetivo).</li>
+      <li>Cada <strong>receta</strong> requiere <strong>exactamente un</strong> tipo de molienda (si mezclas moliendas, adapta este axioma a “al menos una”).</li>
+      <li>Cada <strong>receta</strong> genera <strong>al menos un</strong> valor de <strong>TDS</strong> y <strong>al menos un</strong> valor de <strong>extracción</strong> (si siempre reportas un único valor, cámbialo por “exactamente uno”).</li>
+    </ol>
+
+    <h3>Medidas y rangos</h3>
+    <ol start="15">
+      <li>La <strong>molienda fina</strong> se mide en <strong>micras finas</strong>.</li>
+      <li>El valor válido de <strong>micras finas</strong> tiene <strong>mínimo 80</strong> y <strong>máximo 100</strong>.</li>
+      <li>Toda <strong>temperatura</strong> de preparación se expresa en <strong>grados Celsius</strong> (si ese es el estándar de tu clase).</li>
+    </ol>
+
+    <h3>Integridad y sentido común del dominio</h3>
+    <ol start="18">
+      <li>Si una <strong>receta</strong> no tiene café, molienda o temperatura, <strong>no está completa</strong>.</li>
+      <li>Los valores de <strong>TDS</strong> y <strong>extracción</strong> asociados a una receta corresponden a esa misma receta (no se comparten entre recetas distintas sin indicarlo).</li>
+      <li>Ninguna instancia puede ser a la vez <strong>molienda fina</strong> y <strong>molienda gruesa</strong>, ni <strong>tueste claro</strong> y <strong>tueste oscuro</strong>.</li>
+    </ol>
+
+    <hr>
+
+    <h2>Cardinalidad en diagramas tipo grafo (Mermaid <code>graph TD</code>)</h2>
+
+    <p><strong>No existe una sintaxis oficial de cardinalidad</strong>, así que se <strong>anota en la etiqueta</strong> del arco. La convención más clara es la de <strong>multiplicidad UML</strong>:</p>
+
+    <ul>
+      <li><strong>Exactamente n</strong> → <code>n</code>  (equivale a <code>n..n</code>)</li>
+      <li><strong>Al menos n</strong> → <code>n..*</code></li>
+      <li><strong>A lo más n</strong> → <code>0..n</code></li>
+      <li><strong>Entre m y n</strong> → <code>m..n</code></li>
+      <li><strong>Opcional (cero o uno)</strong> → <code>0..1</code></li>
+      <li><strong>Uno y solo uno</strong> → <code>1..1</code> (a veces se escribe solo <code>1</code>)</li>
+      <li><strong>Uno o más</strong> → <code>1..*</code></li>
+      <li><strong>Cero o muchos</strong> → <code>0..*</code> (o <code>*</code>)</li>
+    </ul>
+
+    <p>A partir de ahí, se anotan <strong>rango y casos especiales</strong>. Aquí van <strong>ejemplos directos</strong>.</p>
+
+    <h3>1) Rango “de 1 a 4”</h3>
+    <div class="mermaid">graph TD
+  Receta -->|incluye 1..4| Ingrediente
+</div>
+    <button class="copy" data-code="graph TD\n  Receta -->|incluye 1..4| Ingrediente">Copiar Mermaid</button>
+    <p class="small"><strong>Lectura:</strong> cada <em>Receta</em> incluye entre <strong>1 y 4</strong> <em>Ingredientes</em>.</p>
+
+    <h3>2) Exactamente 2</h3>
+    <div class="mermaid">graph TD
+  Receta -->|requiere 2| Molienda
+</div>
+    <button class="copy" data-code="graph TD\n  Receta -->|requiere 2| Molienda">Copiar Mermaid</button>
+    <p class="small"><strong>Lectura:</strong> cada <em>Receta</em> requiere <strong>exactamente 2</strong> <em>Moliendas</em>.</p>
+
+    <h3>3) Al menos 2 (sin tope)</h3>
+    <div class="mermaid">graph TD
+  Receta -->|requiere 2..*| Molienda
+</div>
+    <button class="copy" data-code="graph TD\n  Receta -->|requiere 2..*| Molienda">Copiar Mermaid</button>
+    <p class="small"><strong>Lectura:</strong> cada <em>Receta</em> requiere <strong>2 o más</strong> <em>Moliendas</em>.</p>
+
+    <h3>4) A lo más 3</h3>
+    <div class="mermaid">graph TD
+  Receta -->|tiene 0..3| Aderezo
+</div>
+    <button class="copy" data-code="graph TD\n  Receta -->|tiene 0..3| Aderezo">Copiar Mermaid</button>
+    <p class="small"><strong>Lectura:</strong> una <em>Receta</em> puede tener <strong>hasta 3</strong> <em>Aderezos</em>.</p>
+
+    <h3>5) “Solo pares” (2, 4, 6, …)</h3>
+    <p><strong>Opción A — Anotación explícita</strong> (visual, no estrictamente formal)</p>
+    <div class="mermaid">graph TD
+  Receta -->|requiere {2,4,6,...} (par)| Molienda
+</div>
+    <button class="copy" data-code="graph TD\n  Receta -->|requiere {2,4,6,...} (par)| Molienda">Copiar Mermaid</button>
+    <ul>
+      <li>Funciona para <strong>comunicar</strong> la idea en el diagrama.</li>
+      <li>Si luego quieres <strong>validarlo automáticamente</strong>, necesitarás reglas/validaciones (p. ej., SHACL/SPARQL) en la implementación.</li>
+    </ul>
+
+    <p><strong>Opción B — Modelado estructural</strong> para forzar paridad</p>
+    <div class="mermaid">graph TD
+  Receta -->|usa 1..*| MezclaMoliendas
+  MezclaMoliendas -->|compuestaPor 2| Molienda
+</div>
+    <button class="copy" data-code="graph TD\n  Receta -->|usa 1..*| MezclaMoliendas\n  MezclaMoliendas -->|compuestaPor 2| Molienda">Copiar Mermaid</button>
+    <blockquote><strong>Truco didáctico:</strong> esta opción B es perfecta para enseñar cómo una restricción lógica se logra <em>re–modelando</em> el dominio.</blockquote>
+
+    <h3>6) ¿Y en ER (pies de cuervo)?</h3>
+<pre><code class="language-mermaid">erDiagram
+    RECETA ||--o{ INGREDIENTE : incluye (1..4)</code></pre>
+    <p class="small">
+      <code>||</code> junto a <code>RECETA</code> = exactamente uno (del lado RECETA en esa relación) <br>
+      <code>o{</code> junto a <code>INGREDIENTE</code> = cero o muchos <br>
+      El <code>(1..4)</code> es <strong>texto aclaratorio</strong> que especifica el rango real.
+    </p>
+
+    <h3>Resumen rápido</h3>
+    <ul>
+      <li>Usa <code>m..n</code>, <code>n..*</code>, <code>0..n</code>, <code>n</code>, etc., <strong>en la etiqueta</strong> del arco para rangos.</li>
+      <li>Para <strong>par</strong>, <strong>múltiplos</strong> o conjuntos discretos <code>{2,4,6}</code> no hay notación estándar de multiplicidad:
+        <ul>
+          <li>anótalo como texto <code>{2,4,6,...}</code> o “(par)”, <strong>o</strong></li>
+          <li>re-modela con entidades intermedias (como <em>Mezcla</em> de 2 elementos) para <strong>hacerlo cumplir</strong>.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2>¡Va! Mini-ejemplos exprés para cada uno de los 6 patrones</h2>
+    <p>En cada caso un <strong>micro-grafo (Mermaid)</strong> y los <strong>axiomas en lenguaje natural</strong> que se leen de ese grafo.</p>
+
+    <h3>1) Jerarquía (“es un tipo de”)</h3>
+    <div class="mermaid">graph TD
+  Tueste --> Claro
+  Tueste --> Medio
+  Tueste --> Oscuro
+</div>
+    <button class="copy" data-code="graph TD\n  Tueste --> Claro\n  Tueste --> Medio\n  Tueste --> Oscuro">Copiar Mermaid</button>
+
+    <p><strong>Axiomas (natural):</strong></p>
+    <ul>
+      <li>Todo <strong>Claro</strong>, <strong>Medio</strong> y <strong>Oscuro</strong> es un <strong>Tueste</strong>.</li>
+      <li><strong>Claro</strong>, <strong>Medio</strong> y <strong>Oscuro</strong> son categorías distintas (no se solapan).</li>
+    </ul>
+
+    <h3>2) Relación con verbo (“tiene / requiere / se prepara a / produce”)</h3>
+    <div class="mermaid">graph TD
+  Receta -->|requiereMolienda| Molienda
+</div>
+    <button class="copy" data-code="graph TD\n  Receta -->|requiereMolienda| Molienda">Copiar Mermaid</button>
+    <p><strong>Axiomas (natural):</strong></p>
+    <ul>
+      <li>El <strong>dominio</strong> de <em>requiereMolienda</em> es <strong>Receta</strong>.</li>
+      <li>El <strong>rango</strong> de <em>requiereMolienda</em> es <strong>Molienda</strong>.</li>
+      <li>Toda <strong>Receta</strong> participa <strong>al menos una vez</strong> en <em>requiereMolienda</em>.</li>
+    </ul>
+
+    <h3>3) Unidades o mediciones</h3>
+    <div class="mermaid">graph TD
+  MoliendaFina -->|seMideEn| MicrasFinas
+  MicrasFinas -->|min| 80
+  MicrasFinas -->|max| 100
+</div>
+    <button class="copy" data-code="graph TD\n  MoliendaFina -->|seMideEn| MicrasFinas\n  MicrasFinas -->|min| 80\n  MicrasFinas -->|max| 100">Copiar Mermaid</button>
+    <p><strong>Axiomas (natural):</strong></p>
+    <ul>
+      <li>La <strong>Molienda Fina</strong> se <strong>mide en micras</strong>.</li>
+      <li>El valor válido de <strong>Micras Finas</strong> está <strong>entre 80 y 100</strong> (rango numérico).</li>
+    </ul>
+
+    <h3>4) Múltiples salidas con el mismo verbo</h3>
+    <div class="mermaid">graph TD
+  Receta -->|produce| TDS
+  Receta -->|produce| Extraccion
+</div>
+    <button class="copy" data-code="graph TD\n  Receta -->|produce| TDS\n  Receta -->|produce| Extraccion">Copiar Mermaid</button>
+    <p><strong>Axiomas (natural):</strong></p>
+    <ul>
+      <li>Toda <strong>Receta</strong> produce <strong>al menos un</strong> valor de <strong>TDS</strong> <strong>y</strong> <strong>al menos un</strong> valor de <strong>Extracción</strong>.</li>
+      <li>No es “o”, es <strong>“y”</strong> (ambas flechas salen del mismo origen).</li>
+    </ul>
+
+    <h3>5) Inversas evidentes</h3>
+    <div class="mermaid">graph TD
+  Receta -->|requiereMolienda| Molienda
+  Molienda -->|esRequeridaPor| Receta
+</div>
+    <button class="copy" data-code="graph TD\n  Receta -->|requiereMolienda| Molienda\n  Molienda -->|esRequeridaPor| Receta">Copiar Mermaid</button>
+    <p><strong>Axiomas (natural):</strong></p>
+    <ul>
+      <li>Si una <strong>Receta</strong> requiere una <strong>Molienda</strong>, entonces esa <strong>Molienda</strong> es <strong>requerida por</strong> esa <strong>Receta</strong> (propiedad inversa).</li>
+      <li>Las dos frases describen <strong>la misma relación</strong> en sentidos opuestos.</li>
+    </ul>
+
+    <h3>6) Pistas de unicidad (cardinalidad “exactamente uno”)</h3>
+    <div class="mermaid">graph TD
+  Cafe -->|tieneTueste 1..1| Tueste
+  Receta -->|sePreparaA 1..1| Temperatura
+</div>
+    <button class="copy" data-code="graph TD\n  Cafe -->|tieneTueste 1..1| Tueste\n  Receta -->|sePreparaA 1..1| Temperatura">Copiar Mermaid</button>
+    <p><strong>Axiomas (natural):</strong></p>
+    <ul>
+      <li>Cada <strong>Café</strong> tiene <strong>exactamente un</strong> <strong>Tueste</strong>.</li>
+      <li>Cada <strong>Receta</strong> se <strong>prepara a exactamente una</strong> <strong>Temperatura</strong> (temperatura objetivo).</li>
+    </ul>
+
+  </article>
+</main>
+
+<script>
+// theme toggle
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  if (window._reinitMermaid) window._reinitMermaid(next);
+}
+
+// highlight.js
+hljs.highlightAll();
+
+// copy buttons
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.copy');
+  if(!btn) return;
+  const code = btn.getAttribute('data-code') || '';
+  navigator.clipboard.writeText(code).then(()=>{
+    const old = btn.textContent;
+    btn.textContent = '¡Copiado!';
+    setTimeout(()=>btn.textContent = old, 1200);
+  });
+});
+</script>
+</body>
+</html>
