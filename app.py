@@ -7,6 +7,9 @@ Interfaz web usando Gradio que permite:
 - Ver clasificación de sesgos y falacias
 - Ver explicaciones
 - Ver señalamiento de partes problemáticas del texto
+
+Para ejecutar: python app.py o ./start.sh
+La interfaz estará disponible en http://localhost:7861
 """
 
 import gradio as gr
