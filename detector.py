@@ -61,16 +61,18 @@ class DetectorFalaciasSesgos:
                 r'\bno\s+tienes?\s+(idea|conocimiento|derecho)\b'
             ],
             TipoFalaciaInformal.APELACION_A_LA_EMOCION: [
-                r'\bpiensa\s+en\s+los\s+(niños|pobres|ancianos)\b',
-                r'\b(terrible|horrible|espantoso|maravilloso)\b.*\bpor\s+eso\b',
-                r'\bte\s+sentirías?\s+(mal|culpable)\b',
-                r'\b(imagina|imagínate)\s+que\b'
+                r'\bpiensa\s+en\s+(los\s+)?(niños|pobres|ancianos|víctimas)\b',
+                r'\b(terrible|horrible|espantoso|maravilloso|hermoso)\b.*\bpor\s+eso\b',
+                r'\bte\s+sentirías?\s+(mal|culpable|orgulloso)\b',
+                r'\b(imagina|imagínate)\s+que\b',
+                r'\b¿acaso\s+quieres\s+que\b'
             ],
             TipoFalaciaInformal.APELACION_A_LA_AUTORIDAD: [
                 r'\b(doctor|experto|científico|profesor|estudios)\s+(dice|dicen|demuestran)\b',
                 r'\bsegún\s+(los\s+)?expertos?\b',
                 r'\bla\s+ciencia\s+(dice|demuestra)\b',
-                r'\bestá\s+científicamente\s+probado\b'
+                r'\bestá\s+científicamente\s+probado\b',
+                r'\blos\s+científicos\s+dicen\b'
             ],
             TipoFalaciaInformal.PENDIENTE_RESBALADIZA: [
                 r'\bsi\s+\w+.*entonces.*y\s+luego.*y\s+después\b',
@@ -93,10 +95,11 @@ class DetectorFalaciasSesgos:
         # Patrones para falacias formales
         self.patrones_falacias_formales = {
             TipoFalaciaFormal.GENERALIZACION_ACELERADA: [
-                r'\btodos?\s+los\s+\w+\s+(son|están)\b',
+                r'\btodos?\s+(los|las)\s+\w+\s+(son|están)\b',
                 r'\bsiempre\b.*\btodos?\b',
                 r'\bnunca\b.*\bningún\b',
-                r'\bla\s+mayoría\b.*\bpor\s+lo\s+tanto\b'
+                r'\bla\s+mayoría\b.*\bpor\s+lo\s+tanto\b',
+                r'\bvi\s+en\s+las\s+noticias\b.*\bpor\s+eso\s+todos?\b'
             ],
             TipoFalaciaFormal.FALSA_CAUSA: [
                 r'\bdespués\s+de\b.*\bpor\s+lo\s+tanto\b',
@@ -110,15 +113,18 @@ class DetectorFalaciasSesgos:
         self.patrones_sesgos = {
             TipoSesgoPerceptivo.SESGO_DE_CONFIRMACION: [
                 r'\bcomo\s+ya\s+(sabía|pensaba|creía)\b',
-                r'\besto\s+confirm[ao]\s+que\b',
+                r'\bcomo\s+siempre\s+(pensé|pensaba|creía)\b',
+                r'\besto\s+confirm[ao]\s+(que|mis)\b',
                 r'\bsiempre\s+supe\s+que\b',
-                r'\btal\s+como\s+pensaba\b'
+                r'\btal\s+como\s+pensaba\b',
+                r'\bconfirma\s+mis\s+sospechas\b'
             ],
             TipoSesgoPerceptivo.SESGO_DE_DISPONIBILIDAD: [
                 r'\brecuerdo\s+que\b.*\bpor\s+eso\b',
-                r'\bví\s+en\s+(las\s+noticias|la\s+tv)\b',
+                r'\bví\s+en\s+(las\s+noticias|la\s+tv|internet)\b',
                 r'\btodo\s+el\s+mundo\s+(sabe|conoce)\b',
-                r'\bes\s+obvio\s+que\b'
+                r'\bes\s+obvio\s+que\b',
+                r'\bes\s+evidente\s+que\b'
             ],
             TipoSesgoMemoria.SESGO_DE_ANCLAJE: [
                 r'\bel\s+primer\b.*\bpor\s+lo\s+tanto\b',
